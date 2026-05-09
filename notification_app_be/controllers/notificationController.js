@@ -1,5 +1,8 @@
 const Notification = require("../models/Notification");
 const sendLog = require("../../logging_middleware/logger");
+const {
+    saveNotification
+} = require("../services/notificationService");
 
 const getNotifications = async (req, res) => {
 
@@ -20,7 +23,10 @@ const getNotifications = async (req, res) => {
         }
 
         const data = await Notification.find(filterData)
-            .sort({ createdAt: -1 })
+            .sort({
+                priority: -1,
+                createdAt: -1
+            })
             .skip(skip)
             .limit(limit);
 
@@ -39,20 +45,17 @@ const addNotification = async (req, res) => {
 
     try {
 
-        const notification = new Notification({
+        const type = req.body.type;
 
-            type: req.body.type,
-            message: req.body.message
+        const message = req.body.message;
 
-        });
-
-        await notification.save();
+        await saveNotification(type, message);
 
         await sendLog(
             "backend",
             "info",
-            "controller",
-            "Notification added successfully"
+            "service",
+            "Notification processed successfully"
         );
 
         res.json({
@@ -64,8 +67,8 @@ const addNotification = async (req, res) => {
         await sendLog(
             "backend",
             "error",
-            "controller",
-            "Error while saving notification"
+            "service",
+            "Failed to process notification"
         );
 
         res.status(500).json({
