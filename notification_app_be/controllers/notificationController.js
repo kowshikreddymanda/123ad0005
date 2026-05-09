@@ -1,4 +1,5 @@
 const Notification = require("../models/Notification");
+const sendLog = require("../../logging_middleware/logger");
 
 const getNotifications = async (req, res) => {
 
@@ -47,14 +48,28 @@ const addNotification = async (req, res) => {
 
         await notification.save();
 
+        await sendLog(
+            "backend",
+            "info",
+            "controller",
+            "Notification added successfully"
+        );
+
         res.json({
             message: "Notification Added"
         });
 
     } catch (err) {
 
+        await sendLog(
+            "backend",
+            "error",
+            "controller",
+            "Error while saving notification"
+        );
+
         res.status(500).json({
-            message: "Error while saving notification"
+            message: "Server Error"
         });
 
     }
