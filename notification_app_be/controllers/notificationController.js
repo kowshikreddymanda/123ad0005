@@ -1,30 +1,48 @@
-const notifications = [
-    {
-        id: 1,
-        type: "Placement",
-        message: "Infosys hiring drive",
-        isRead: false
-    }
-];
+const Notification = require("../models/Notification");
 
-const getNotifications = (req, res) => {
-    res.json(notifications);
+const getNotifications = async (req, res) => {
+
+    try {
+
+        const data = await Notification.find().sort({
+            createdAt: -1
+        });
+
+        res.json(data);
+
+    } catch (err) {
+
+        res.status(500).json({
+            message: "Error while fetching notifications"
+        });
+
+    }
 };
 
-const addNotification = (req, res) => {
+const addNotification = async (req, res) => {
 
-    const newNotification = {
-        id: notifications.length + 1,
-        type: req.body.type,
-        message: req.body.message,
-        isRead: false
-    };
+    try {
 
-    notifications.push(newNotification);
+        const notification = new Notification({
 
-    res.json({
-        message: "Notification Added"
-    });
+            type: req.body.type,
+            message: req.body.message
+
+        });
+
+        await notification.save();
+
+        res.json({
+            message: "Notification Saved"
+        });
+
+    } catch (err) {
+
+        res.status(500).json({
+            message: "Error while saving notification"
+        });
+
+    }
 };
 
 module.exports = {
