@@ -4,9 +4,24 @@ const getNotifications = async (req, res) => {
 
     try {
 
-        const data = await Notification.find().sort({
-            createdAt: -1
-        });
+        const page = Number(req.query.page) || 1;
+
+        const limit = Number(req.query.limit) || 5;
+
+        const skip = (page - 1) * limit;
+
+        let filterData = {};
+
+        if (req.query.isRead) {
+
+            filterData.isRead = req.query.isRead === "true";
+
+        }
+
+        const data = await Notification.find(filterData)
+            .sort({ createdAt: -1 })
+            .skip(skip)
+            .limit(limit);
 
         res.json(data);
 
@@ -33,7 +48,7 @@ const addNotification = async (req, res) => {
         await notification.save();
 
         res.json({
-            message: "Notification Saved"
+            message: "Notification Added"
         });
 
     } catch (err) {
@@ -45,7 +60,32 @@ const addNotification = async (req, res) => {
     }
 };
 
+const markAsRead = async (req, res) => {
+
+    try {
+
+        await Notification.findByIdAndUpdate(
+            req.params.id,
+            {
+                isRead: true
+            }
+        );
+
+        res.json({
+            message: "Notification marked as read"
+        });
+
+    } catch (err) {
+
+        res.status(500).json({
+            message: "Error while updating notification"
+        });
+
+    }
+};
+
 module.exports = {
     getNotifications,
-    addNotification
+    addNotification,
+    markAsRead
 };
